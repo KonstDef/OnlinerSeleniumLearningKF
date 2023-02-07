@@ -1,5 +1,6 @@
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -8,6 +9,11 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -157,6 +163,8 @@ public class TkanyTest {
         driver.findElements(By.xpath(String.format(REGISTRATION_FORM_DIV_BY_TEXT_XPATH, "")))
                 .forEach(wE -> fields.put(wE.findElement(By.className("bx-authform-label-container")).getText(),
                         wE.findElement(By.tagName("input"))));
+
+
 
         fields.forEach((s, wE) -> {
             System.out.println(s);
@@ -441,6 +449,63 @@ public class TkanyTest {
         driver.findElement(By.xpath(BACK_TO_TOP_BUTTON_XPATH)).click();
         System.out.println("Is back to top button displayed: " + driver.findElement(By.xpath(BACK_TO_TOP_BUTTON_XPATH)).isDisplayed());
     }
+
+    @Test //TODO: Captcha
+    public static void testCaptcha() {
+        driver.findElement(By.xpath(String.format(NAV_MENU_AUTH_LINKS_BY_TEXT_XPATH, "Регистрация"))).click();
+
+        WebElement form = driver.findElement(By.xpath("//div[@class='bx-auth-form-line' and div[contains(@class,'captha')]]"));
+
+        new Actions(driver).scrollByAmount(0, form.getLocation().getY()).perform();
+
+        File captcha = driver.findElement(By.xpath("//div[@class='bx-auth-form-captha-image']/img"))
+                .getScreenshotAs(OutputType.FILE);
+
+
+//        String str;
+//        ITesseract image = new Tesseract();
+//        image.setDatapath(Paths.get("src/test/resources/2tessdata3").toAbsolutePath().toString());
+//        image.setLanguage("eng");
+//        try {
+//            str = image.doOCR(captcha);
+//        } catch (TesseractException e) {
+//            throw new RuntimeException(e);
+//        }
+
+//        System.out.println(str);
+    }
+
+    @Test
+    public static void getIMG() {
+        driver.findElement(By.xpath(String.format(NAV_MENU_AUTH_LINKS_BY_TEXT_XPATH, "Регистрация"))).click();
+
+        for(int i=0;i<100;i++) {
+            WebElement form = driver.findElement(By.xpath("//div[@class='bx-auth-form-line' and div[contains(@class,'captha')]]"));
+
+            new Actions(driver).scrollByAmount(0, form.getLocation().getY()).perform();
+
+            File captcha = driver.findElement(By.xpath("//div[@class='bx-auth-form-captha-image']/img"))
+                    .getScreenshotAs(OutputType.FILE);
+
+            captcha.renameTo(new File("~/img/img" + i + ".png"));
+            driver.get(driver.getCurrentUrl());
+        }
+
+        System.out.println();
+
+    //    String str;
+//        ITesseract image = new Tesseract();
+//        image.setDatapath(Paths.get("src/test/resources/2tessdata3").toAbsolutePath().toString());
+//        image.setLanguage("eng");
+//        try {
+//            str = image.doOCR(captcha);
+//        } catch (TesseractException e) {
+//            throw new RuntimeException(e);
+//        }
+
+     //   System.out.println(str);
+    }
+
     @AfterMethod
     public static void clear() {
         driver.manage().deleteAllCookies();
