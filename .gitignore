@@ -1,5 +1,7 @@
 # Project exclude paths
+/src
 /target/
 /.idea
+.txt
 /Onliner_Fedotov.iml
 /src/main/java/Hash.java
