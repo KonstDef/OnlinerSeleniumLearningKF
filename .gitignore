@@ -1,5 +1,5 @@
 # Project exclude paths
-/src
+/src/main/
 /target/
 /.idea
 .txt
