@@ -47,7 +47,7 @@ public class Browser {
         try {
             driver.manage().window().maximize();
         } catch (Exception e) {
-            Assert.fail("Drive not initialized");
+            Assert.fail("Maximize fail: Driver was not initialized");
         }
     }
 
@@ -86,9 +86,15 @@ public class Browser {
         }
     }
 
+    public static void waitForjQueryLoad() {
+        WebDriverWait wait = new WebDriverWait(getDriver(), Duration.ofSeconds(getTimeoutForCondition()));
+        wait.until(driver -> (Boolean) ((JavascriptExecutor) driver).executeScript("return jQuery.active==0"));
+    }
+
     public void exit() {
         if (instance != null) {
             driver.quit();
+            instance=null;
         }
     }
 }
