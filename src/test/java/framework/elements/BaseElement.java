@@ -1,12 +1,20 @@
 package framework.elements;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import framework.Browser;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class BaseElement {
@@ -72,6 +80,17 @@ public abstract class BaseElement {
         return isElementPresent();
     }
 
+    public boolean isClickable(){
+        isElementPresent();
+        try{
+            new WebDriverWait(Browser.getDriver(), Duration.ZERO)
+                    .until(ExpectedConditions.elementToBeClickable(element));
+            return true;
+        } catch (TimeoutException timeoutException){
+            return false;
+        }
+    }
+
     public String getAttribute(String attributeName) {
         isElementPresent();
         String attributeValue = element.getAttribute(attributeName);
@@ -103,6 +122,12 @@ public abstract class BaseElement {
         areElementsPresent();
         return elements.size();
     }
+
+    public void forEach(Consumer<WebElement> consumer) {
+        areElementsPresent();
+        elements.forEach(consumer);
+    }
+
     public void scrollTo() {
         isElementPresent();
         Actions actions = new Actions(Browser.getDriver());
@@ -120,6 +145,15 @@ public abstract class BaseElement {
         Actions action = new Actions(Browser.getDriver());
         action.click(element).build().perform();
         System.out.printf("%s: %s - clicked;\n", getElementType(), by);
+    }
+
+    public void waitForElementAttachment(){
+        FluentWait<WebDriver> wait = new FluentWait<>(Browser.getDriver())
+                .withTimeout(Duration.ofSeconds(Browser.getTimeoutForCondition()))
+                .pollingEvery(Duration.ofMillis(100))
+                .ignoring(StaleElementReferenceException.class);
+
+        wait.until(driver->isElementPresent());
     }
 
     public void clickAndWait() {

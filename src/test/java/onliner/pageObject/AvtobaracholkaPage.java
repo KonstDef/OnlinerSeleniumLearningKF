@@ -1,34 +1,27 @@
 package onliner.pageObject;
 
+import framework.BasePage;
 import framework.Browser;
-import framework.elements.Button;
-import framework.elements.CheckBox;
-import framework.elements.TextBox;
+import framework.elements.*;
 import io.qameta.allure.Step;
 import org.openqa.selenium.By;
-import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.asserts.SoftAssert;
 
+import java.util.List;
 import java.util.Map;
 
-public class AvtobaracholkaPage {
+public class AvtobaracholkaPage extends BasePage{
     static SoftAssert softAssert = new SoftAssert();
-    private static final TextBox PAGE_TITLE_XPATH = new TextBox(By.xpath("//h1[contains(@class,'title_big-alter') and contains(text(),'Автобарахолка')]"));
+    private static final By PAGE_LOCATOR = By.xpath("//h1[contains(@class,'title_big-alter') and contains(text(),'Автобарахолка')]");
     private static final String CURRENCY_CHANGE_BUTTON_XPATH = "//div[contains(@class,'label-part_2')]//a[contains(@class,'link_base') and contains(text(),'%s')]";
     private static final String FILTER_RANGE_FIELD_BY_NAME_XPATH = "//div[contains(@class,'label-title') and contains(text(),'%s')]/ancestor::div[contains(@class,'vehicle-form__row')]//input[contains(@class,'vehicle-form')]";
     private static final String FILTER_CHECKBOX_BY_NAME_AND_VALUE_XPATH = "//div[contains(@class,'label-title') and contains(text(),'%1$s')]/ancestor::div[contains(@class,'vehicle-form__row')]//div[contains(@class,'checkbox-sign') and contains(text(),'%2$s')]/ancestor::div[contains(@class,'checkbox_base')]/div";
     private static final String CARD_PRICE_BY_CURRENCY_SYMBOL_XPATH = "//div[contains(@class,'part_price')]/div[contains(.,'%s')]";
     private static final String CARD_SPECIFICATION_BY_ENGLISH_CLASS_XPATH = "//div[contains(@class,'part_specification')]//div[contains(@class,'description_%s')]";
+    private static final Label NEXT_CARDS_BUTTON = new Label(By.xpath("//a[contains(@class,'vehicle-pagination__main')]"));
 
-    @AfterMethod
-    public void waitForJQuery() {
-        Browser.waitForjQueryLoad();
-    }
-
-    @Step("Check page loaded")
-    public void isPageOpened() {
-        Assert.assertTrue(PAGE_TITLE_XPATH.isDisplayed(), "\n###AB page is not loaded\n###Expected: AB page is loaded\n");
+    public AvtobaracholkaPage(){
+        super(PAGE_LOCATOR,"Main page");
     }
 
     @Step("Set '{currCode}' currency for filter")
@@ -71,31 +64,44 @@ public class AvtobaracholkaPage {
         filterBox.clickByAction();
     }
 
-    @Step("Check {data} is {value}")
     public static void validationByMap(String data, String value) {
         TextBox spec;
-        String specText;
+        List<String> specText;
+        Browser.waitForjQueryLoad();
         switch (data) {
             case "$ price lesser":
                 spec = new TextBox(By.xpath(String.format(CARD_PRICE_BY_CURRENCY_SYMBOL_XPATH, "$")));
-                specText = spec.getText().split(" / ")[0]
-                        .replace(" ", "")
-                        .replace("$","");
-                int price = Integer.parseInt(specText);
-                int expectedPrice = Integer.parseInt(value);
-
-                softAssert.assertTrue(price<expectedPrice,"Price is greater then expected\nActual result: " + specText + "\nExpected result: " + data);
+                spec.waitForElementAttachment();
+                specText = spec.getTextList();
+                specText.forEach(s-> {
+                    String priceString = s.split(" / ")[0]
+                            .replace(" ", "")
+                            .replace("$","");
+                    int price = Integer.parseInt(priceString);
+                    int expectedPrice = Integer.parseInt(value);
+                    softAssert.assertTrue(price<expectedPrice,"Price is greater then expected\nActual result: " + specText + "\nExpected result: " + data);
+                });
                 break;
             case "default":
                 spec = new TextBox(By.xpath(String.format(CARD_SPECIFICATION_BY_ENGLISH_CLASS_XPATH, data)));
-                specText = spec.getText();
-                softAssert.assertEquals(specText, value);
+                spec.waitForElementAttachment();
+                specText = spec.getTextList();
+                specText.forEach(s-> {
+                    softAssert.assertEquals(s, value,"Attribute not equals to expected\nActual result: " + specText + "\nExpected result: " + data);
+                });
                 break;
         }
     }
-    @Step("Check first card parameters are correct")
-    public void checkFirst(Map<String, String> testData) {
-        testData.forEach(AvtobaracholkaPage::validationByMap);
-        softAssert.assertAll();
+    @Step("Check card parameters are correct")
+    public void checkElementsData(Map<String, String> testData) {
+        while(true){
+            testData.forEach(AvtobaracholkaPage::validationByMap);
+            boolean lastList = NEXT_CARDS_BUTTON.getAttribute("class").contains("main_disabled");
+            if(lastList) break;
+            else {
+                NEXT_CARDS_BUTTON.moveAndClickByAction();
+                Browser.waitForjQueryLoad();
+            }
+        }
     }
 }

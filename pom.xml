@@ -21,11 +21,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>3.0.0-M4</version>
                 <configuration>
-                    <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <argLine>
                         -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/1.9.19/aspectjweaver-1.9.19.jar"
+                        -Dfile.encoding=${project.build.sourceEncoding}
                     </argLine>
                     <suiteXmlFiles>
                         <suiteXmlFile>src/test/resources/${suiteXmlFiles}</suiteXmlFile>
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>7.7.1</version>
+            <version>6.14.3</version>
             <scope>test</scope>
         </dependency>
 

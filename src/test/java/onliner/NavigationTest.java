@@ -22,7 +22,6 @@ public class NavigationTest extends BaseTest {
         mainPage.navigateWithHeaderLabel("Каталог");
 
         CatalogPage catalogPage = new CatalogPage();
-        catalogPage.isPageOpened();
         catalogPage.navigateToSubmenuLabel();
         catalogPage.moveToSubmenuItem();
         catalogPage.navigateToSubmenuCategory();
