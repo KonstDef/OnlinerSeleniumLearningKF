@@ -7,7 +7,6 @@ import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.testng.asserts.SoftAssert;
 
-import java.util.List;
 import java.util.Map;
 
 public class AvtobaracholkaPage extends BasePage{
@@ -16,8 +15,7 @@ public class AvtobaracholkaPage extends BasePage{
     private static final String CURRENCY_CHANGE_BUTTON_XPATH = "//div[contains(@class,'label-part_2')]//a[contains(@class,'link_base') and contains(text(),'%s')]";
     private static final String FILTER_RANGE_FIELD_BY_NAME_XPATH = "//div[contains(@class,'label-title') and contains(text(),'%s')]/ancestor::div[contains(@class,'vehicle-form__row')]//input[contains(@class,'vehicle-form')]";
     private static final String FILTER_CHECKBOX_BY_NAME_AND_VALUE_XPATH = "//div[contains(@class,'label-title') and contains(text(),'%1$s')]/ancestor::div[contains(@class,'vehicle-form__row')]//div[contains(@class,'checkbox-sign') and contains(text(),'%2$s')]/ancestor::div[contains(@class,'checkbox_base')]/div";
-    private static final String CARD_PRICE_BY_CURRENCY_SYMBOL_XPATH = "//div[contains(@class,'part_price')]/div[contains(.,'%s')]";
-    private static final String CARD_SPECIFICATION_BY_ENGLISH_CLASS_XPATH = "//div[contains(@class,'part_specification')]//div[contains(@class,'description_%s')]";
+    private static final String CARD_BY_XPATH = "//a[contains(@class,'offers-unit')]";
     private static final Label NEXT_CARDS_BUTTON = new Label(By.xpath("//a[contains(@class,'vehicle-pagination__main')]"));
 
     public AvtobaracholkaPage(){
@@ -64,38 +62,18 @@ public class AvtobaracholkaPage extends BasePage{
         filterBox.clickByAction();
     }
 
-    public static void validationByMap(String data, String value) {
-        TextBox spec;
-        List<String> specText;
-        Browser.waitForjQueryLoad();
-        switch (data) {
-            case "$ price lesser":
-                spec = new TextBox(By.xpath(String.format(CARD_PRICE_BY_CURRENCY_SYMBOL_XPATH, "$")));
-                spec.waitForElementAttachment();
-                specText = spec.getTextList();
-                specText.forEach(s-> {
-                    String priceString = s.split(" / ")[0]
-                            .replace(" ", "")
-                            .replace("$","");
-                    int price = Integer.parseInt(priceString);
-                    int expectedPrice = Integer.parseInt(value);
-                    softAssert.assertTrue(price<expectedPrice,"Price is greater then expected\nActual result: " + specText + "\nExpected result: " + data);
-                });
-                break;
-            case "default":
-                spec = new TextBox(By.xpath(String.format(CARD_SPECIFICATION_BY_ENGLISH_CLASS_XPATH, data)));
-                spec.waitForElementAttachment();
-                specText = spec.getTextList();
-                specText.forEach(s-> {
-                    softAssert.assertEquals(s, value,"Attribute not equals to expected\nActual result: " + specText + "\nExpected result: " + data);
-                });
-                break;
-        }
-    }
-    @Step("Check card parameters are correct")
+    @Step("Check parameters for all cards are correct")
     public void checkElementsData(Map<String, String> testData) {
         while(true){
-            testData.forEach(AvtobaracholkaPage::validationByMap);
+            Label cards = new Label(By.xpath(CARD_BY_XPATH));
+            Browser.waitForjQueryLoad();
+            cards.waitForElementAttachment();
+            int numOfCards = cards.countElements();
+
+            for(int i = 1;i!=numOfCards+1; i++){
+                new ABCard(i).checkFields(testData);
+            }
+
             boolean lastList = NEXT_CARDS_BUTTON.getAttribute("class").contains("main_disabled");
             if(lastList) break;
             else {
@@ -103,5 +81,6 @@ public class AvtobaracholkaPage extends BasePage{
                 Browser.waitForjQueryLoad();
             }
         }
+        softAssert.assertAll();
     }
 }
